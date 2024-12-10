@@ -2,7 +2,7 @@ This is the link to my repository for this project it includes the completed ass
 
 https://github.com/MaliqueRaymond
 
-
+USE npm install then node index.js to get node files and run the test !!!!!!!!!!!
 
 QA Wolf - Playwright Script Submission
 Overview
