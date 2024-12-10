@@ -11,103 +11,117 @@ https://github.com/MaliqueRaymond
 
 
 
-QA Wolf Test Assignment
-This repository contains the code for the QA Wolf test assignment. The goal of this assignment is to test the ability to automate browser interactions and perform validation on web pages using Playwright.
+QA Wolf - Playwright Script Submission
+Overview
+This repository contains a Playwright script that automates the process of checking if articles on Hacker News are sorted correctly from newest to oldest based on their timestamps. The script uses JavaScript and Playwright for browser automation to extract article data, compare timestamps, and log whether the articles are sorted as expected.
 
 Table of Contents
-Project Setup
-Dependencies
-Running the Tests
-Test Details
-Troubleshooting
-Contributing
-Project Setup
-Follow the steps below to set up and run the tests locally:
+Project Overview
+Technologies Used
+How to Run the Script
+Script Walk-through
+Importing Playwright
+Browser Setup
+Data Extraction
+Time Conversion Logic
+Validation Loop
+Logging and Final Output
+Video Walk-through
+Project Overview
+The script automates the process of checking whether the articles on Hacker News are correctly sorted from newest to oldest based on the timestamps provided in the articles. It uses Playwright for browser automation and compares the timestamps of the articles to ensure they are in proper order.
 
-1. Clone the Repository
-To clone this repository to your local machine, run the following command in your terminal:
+Technologies Used
+JavaScript: The programming language used to write the script.
+Playwright: A browser automation framework used to launch browsers, navigate pages, and interact with elements on the page.
+How to Run the Script
+Clone the repository to your local machine:
 
 bash
 Copy code
 git clone <repository-url>
 cd <repository-folder>
-Replace <repository-url> with the URL of the repository and <repository-folder> with the folder name where you want to store the project.
-
-2. Install Node.js
-Ensure you have Node.js installed on your machine. You can download the latest version from the Node.js website.
-
-3. Install Dependencies
-Once Node.js is installed, navigate to your project folder and run the following command to install the required dependencies:
+Install the required dependencies:
 
 bash
 Copy code
 npm install
-This will install the necessary packages, including Playwright, which is used for browser automation.
-
-4. Install Playwright Browsers
-After the dependencies are installed, you need to install the necessary browsers that Playwright uses for testing (e.g., Chromium, Firefox, and WebKit). Run the following command:
-
-bash
-Copy code
-npx playwright install
-This will download the browser binaries needed for testing.
-
-Dependencies
-This project relies on the following dependencies:
-
-Playwright: A browser automation tool that helps us control the browser for testing purposes.
-You can install the dependencies using the command npm install, which will install all dependencies listed in package.json.
-
-Running the Tests
-After setting up the project and installing dependencies, you can run the tests by executing the following command in your terminal:
+Run the script:
 
 bash
 Copy code
 node index.js
-This will:
+The script will automatically open a Chromium browser, navigate to Hacker News, and check the order of the articles. If the articles are sorted correctly, you will see a message confirming this in the console.
 
-Launch the Chromium browser.
-Navigate to the Hacker News "Newest" page.
-Extract the first 100 articles and their timestamps.
-Compare the timestamps to ensure the articles are sorted from newest to oldest.
-Output a message indicating whether the articles are sorted correctly or not.
-Test Details
-This project is focused on automating browser testing using Playwright. The script performs the following tasks:
+Script Walk-through
+Importing Playwright
+At the top of the script, I import the Playwright library:
 
-Navigates to Hacker News: The script loads the Hacker News "Newest" page (https://news.ycombinator.com/newest).
-
-Extracts Articles: The first 100 articles listed on the page are extracted by selecting elements with the class .athing. The script collects each article's title and the time since it was posted (e.g., "5 minutes ago", "1 hour ago").
-
-Validates Sorting: The timestamps (e.g., "5 minutes ago") are converted into comparable values (e.g., minutes or hours). The articles are then compared to ensure they are sorted from newest to oldest.
-
-Logging: If the articles are sorted correctly, the script will log a success message. If the sorting is incorrect, it will log the problem.
-
-Troubleshooting
-If you encounter any issues while running the tests, here are some common troubleshooting steps:
-
-Node.js Installation: Ensure that you have the latest version of Node.js installed. You can check your current version by running node -v. If it's outdated, visit Node.js download page to install the latest version.
-
-Playwright Installation: Ensure that Playwright is installed correctly by running:
-
-bash
+javascript
 Copy code
-npm install playwright
-Browser Installation: If you encounter issues related to missing browser binaries, make sure to run:
+const { chromium } = require('playwright');
+Playwright allows us to control the browser programmatically. I’m using the Chromium browser here, but Playwright also supports Firefox and WebKit.
 
-bash
+Browser Setup
+The browser is launched using the chromium.launch() method. I ensure that the browser is visible for debugging purposes by passing the option headless: false. This opens a visible browser window while the script runs:
+
+javascript
 Copy code
-npx playwright install
-Dependency Issues: If you have missing or conflicting dependencies, try deleting the node_modules folder and package-lock.json file, and then run npm install again.
+const browser = await chromium.launch({ headless: false });
+const context = await browser.newContext();
+const page = await context.newPage();
+Next, I navigate to the Hacker News Newest page:
 
-Contributing
-If you'd like to contribute to this project, feel free to fork the repository, make changes, and create a pull request with your improvements.
+javascript
+Copy code
+await page.goto('https://news.ycombinator.com/newest');
+Data Extraction
+I use Playwright's $$eval() method to extract data from the page. This method allows me to query all the articles with the .athing class and extract both their titles and their timestamps:
 
-Fork the repository.
-Make your changes in a new branch.
-Push your changes to your fork.
-Create a pull request describing your changes.
-We appreciate your contributions and suggestions!
+javascript
+Copy code
+const articles = await page.$$eval('.athing', (articles) => {
+  return articles.slice(0, 100).map(article => {
+    const title = article.querySelector('.titleline > a').innerText;
+    const age = article.querySelector('.age').innerText;
+    return { title, age };
+  });
+});
+Time Conversion Logic
+The timestamps like "5 minutes ago" or "2 hours ago" need to be converted into numeric values for comparison. I created a helper function convertToMinutes() that converts these time strings into a numerical value in minutes:
 
-License
-This project is licensed under the MIT License.
+javascript
+Copy code
+function convertToMinutes(timeString) {
+  let [value, unit] = timeString.split(' ');
+  if (unit === 'minute' || unit === 'minutes') {
+    return parseInt(value);
+  } else if (unit === 'hour' || unit === 'hours') {
+    return parseInt(value) * 60;
+  } else if (unit === 'day' || unit === 'days') {
+    return parseInt(value) * 24 * 60;
+  }
+  return 0;
+}
+Validation Loop
+I loop through the list of articles and compare their timestamps to ensure they are in the correct order. The script checks that each article’s timestamp is newer or equal to the next article's timestamp. If any article is out of order, the script logs an error:
 
+javascript
+Copy code
+for (let i = 0; i < articles.length - 1; i++) {
+  const currentArticle = articles[i];
+  const nextArticle = articles[i + 1];
+  if (convertToMinutes(currentArticle.age) < convertToMinutes(nextArticle.age)) {
+    console.error(`Articles out of order: "${currentArticle.title}" and "${nextArticle.title}"`);
+    isSorted = false;
+  }
+}
+Logging and Final Output
+If the articles are sorted correctly, the script logs a success message:
+
+javascript
+Copy code
+if (isSorted) {
+  console.log('The articles are sorted from newest to oldest!');
+} else {
+  console.log('The articles are NOT sorted correctly.');
+}
