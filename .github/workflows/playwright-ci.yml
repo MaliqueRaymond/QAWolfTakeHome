@@ -34,9 +34,9 @@ jobs:
         npx playwright install
         npx playwright test
 
-    # Step 5: Upload the test results (Optional)
+    # Step 5: Upload the test results (Updated to v3)
     - name: Upload Playwright test results
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: playwright-test-results
         path: test-results/  # Ensure that your Playwright configuration outputs results here
