@@ -1,0 +1,1 @@
+Use npm install playright then node index.js to run the test
