@@ -1,0 +1,42 @@
+name: Playwright CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Step 1: Checkout the code from the repository
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    # Step 2: Set up Node.js (Adjust the version to your needs, e.g., 14, 16)
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+
+    # Step 3: Install dependencies
+    - name: Install dependencies
+      run: |
+        npm install
+
+    # Step 4: Run Playwright tests
+    - name: Run Playwright tests
+      run: |
+        npx playwright install
+        npx playwright test
+
+    # Step 5: Upload the test results (Optional)
+    - name: Upload Playwright test results
+      uses: actions/upload-artifact@v2
+      with:
+        name: playwright-test-results
+        path: test-results/  # Ensure that your Playwright configuration outputs results here
