@@ -1,44 +1,36 @@
 // playwright.config.js
-module.exports = {
-  // Directory where your test files are stored
-  testDir: './tests',
 
-  // Global timeout for each test (in milliseconds)
-  timeout: 30000,
+const { defineConfig } = require('@playwright/test');
 
-  // Set the browser viewport size for all tests
+module.exports = defineConfig({
+  testDir: './QA WOLF', // Specify the directory containing your tests
+  timeout: 30000, // Set a 30-second timeout for each test
+  retries: 1, // Retry failed tests once
+  reporter: [['html', { outputFolder: 'test-results', open: 'never' }]], // HTML reporter, results saved in 'test-results'
   use: {
-    headless: true,  // Run tests in headless mode (without browser UI)
-    viewport: { width: 1280, height: 720 },  // Default viewport size for tests
-    actionTimeout: 10000,  // Timeout for each action (like clicks, typing)
-    ignoreHTTPSErrors: true,  // Ignore SSL certificate errors (useful for testing non-HTTPS sites)
+    browserName: 'chromium', // Run tests in Chromium browser
+    headless: true, // Run tests in headless mode by default
+    viewport: { width: 1280, height: 720 }, // Set the viewport size for your tests
+    actionTimeout: 10000, // Set a 10-second timeout for each action
+    ignoreHTTPSErrors: true, // Ignore HTTPS errors
+    baseURL: 'http://localhost:3000', // Default base URL for your tests
+    trace: 'on-first-retry', // Capture traces on the first retry
+    video: 'on', // Record video during the tests
+    screenshot: 'only-on-failure', // Take screenshots only if a test fails
   },
-
-  // Reporters - useful for getting detailed test reports in different formats
-  reporter: [['html', { open: 'never' }], ['json', { outputFile: 'test-results.json' }]],
-
-  // Retry configuration (for flaky tests)
-  retries: 2,  // Retry failed tests twice before marking them as failed
-
-  // Use custom test environment settings (e.g., set browser context options)
   projects: [
     {
-      name: 'chromium',  // Browser name: 'chromium', 'firefox', or 'webkit'
-      use: { 
-        browserName: 'chromium',  // You can also specify 'firefox' or 'webkit'
-      },
+      name: 'Desktop Chromium',
+      use: { browserName: 'chromium' }, // Set Chromium as the browser
     },
     {
-      name: 'firefox',
-      use: { 
-        browserName: 'firefox',
-      },
+      name: 'Desktop Firefox',
+      use: { browserName: 'firefox' }, // Set Firefox as another test project
     },
     {
-      name: 'webkit',
-      use: { 
-        browserName: 'webkit',  // For Safari tests
-      },
+      name: 'Desktop WebKit',
+      use: { browserName: 'webkit' }, // Set WebKit as another test project
     },
   ],
-};
+});
+

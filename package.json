@@ -1,17 +1,5 @@
 {
   "dependencies": {
-    "@playwright/test": "^1.49.1",
-    "playright": "^0.0.22",
-    "playwright": "^1.49.1"
-  },
-  "name": "qa-wolf",
-  "version": "1.0.0",
-  "description": "I have added my repo with other projects attached below you will see the steps taken to run the script using npm install playright then node index.js you will be able to run the playright.",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+    "playright": "^0.0.22"
+  }
 }
