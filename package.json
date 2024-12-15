@@ -1,5 +1,6 @@
 {
   "dependencies": {
-    "playright": "^0.0.22"
+    "playright": "^0.0.22",
+    "playwright": "^1.49.1"
   }
 }
