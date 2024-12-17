@@ -1,4 +1,4 @@
-I have added my repo with other projects attached below you will see the steps taken to run the script using npm install playright then node index.js you will be able to run the playright.
+I have added my repo with other projects attached below you will see the steps taken to run the script using npm install playright then node QAWOLF.js you will be able to run the playright.
 
 In the meantime I will be running other tests as to show off my skills and be committing the work in my repos I hope to hear from you soon Thank you for the oportunity.
 
