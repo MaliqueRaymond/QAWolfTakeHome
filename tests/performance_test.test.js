@@ -1,21 +1,18 @@
-// Import Playwright
-const { chromium } = require("playwright");
+const { test, expect } = require('@playwright/test');
 
-// Test: Measure the time taken to load and extract the data for 100 articles
-async function testPerformance() {
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
+// Playwright Test: Measure performance for loading and extracting 100 articles
+test('Measure time to load and extract 100 articles', async ({ page }) => {
   // Start measuring the time
   const startTime = Date.now();
 
-  await page.goto("https://news.ycombinator.com/newest");
+  // Navigate to Hacker News newest stories page
+  await page.goto('https://news.ycombinator.com/newest');
 
   // Wait for the articles to load
   await page.waitForSelector('.athing');
   await page.waitForTimeout(3000); // Wait for additional 3 seconds to ensure all articles are loaded
 
+  // Extract the first 100 articles
   let articles = await page.$$eval('.athing', (articles) => {
     return articles.slice(0, 100).map(article => {
       const titleElement = article.querySelector('.titleline > a');
@@ -30,12 +27,7 @@ async function testPerformance() {
   const endTime = Date.now();
   const duration = (endTime - startTime) / 1000; // in seconds
 
+  // Log the results and assert that articles were extracted
   console.log(`Time taken to load and extract 100 articles: ${duration} seconds`);
-
-  await browser.close();
-}
-
-// Run the test
-(async () => {
-  await testPerformance();
-})();
+  expect(articles.length).toBeGreaterThanOrEqual(100);
+});

@@ -2,8 +2,8 @@
 
 const { defineConfig } = require('@playwright/test');
 
-module.exports = defineConfig({
-  testDir: './QA WOLF', // Specify the directory containing your tests
+module.exports = ({
+  testDir: './tests', // Specify the directory containing your tests
   timeout: 30000, // Set a 30-second timeout for each test
   retries: 1, // Retry failed tests once
   reporter: [['html', { outputFolder: 'test-results', open: 'never' }]], // HTML reporter, results saved in 'test-results'

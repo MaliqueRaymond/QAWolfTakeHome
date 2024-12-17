@@ -2,5 +2,8 @@
   "dependencies": {
     "playright": "^0.0.22",
     "playwright": "^1.49.1"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1"
   }
 }

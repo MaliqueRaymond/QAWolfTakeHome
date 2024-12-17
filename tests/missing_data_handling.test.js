@@ -1,5 +1,4 @@
-// Import Playwright
-const { chromium } = require("playwright");
+const { test, expect } = require('@playwright/test');
 
 // Helper Function to Convert Time Strings into Minutes
 function convertToMinutes(timeString) {
@@ -36,13 +35,9 @@ function isNewerOrEqual(current, next) {
   return currentMinutes <= nextMinutes;
 }
 
-// Test: Handle articles with missing or undefined age
-async function testMissingDataHandling() {
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext();
-  const page = await context.newPage();
-
-  await page.goto("https://news.ycombinator.com/newest");
+// Playwright Test: Handle articles with missing or undefined age
+test('Handle articles with missing or undefined age', async ({ page }) => {
+  await page.goto('https://news.ycombinator.com/newest');
 
   await page.waitForSelector('.athing');
   await page.waitForTimeout(3000);
@@ -72,16 +67,7 @@ async function testMissingDataHandling() {
     }
   }
 
-  if (isSorted) {
-    console.log('The articles are sorted from newest to oldest!');
-  } else {
-    console.error('The articles are NOT sorted correctly.');
-  }
-
-  await browser.close();
-}
-
-// Run the test
-(async () => {
-  await testMissingDataHandling();
-})();
+  // Assert that articles are sorted correctly
+  expect(isSorted).toBeTruthy();
+  console.log('The articles are sorted from newest to oldest!');
+});

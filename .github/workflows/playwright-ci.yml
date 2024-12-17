@@ -31,6 +31,26 @@ jobs:
       - name: Install Playwright browsers
         run: npx playwright install --with-deps
 
-      # Step 5: Run Playwright tests
+      # Step 5: List available tests for debugging
+      - name: List Playwright tests
+        run: npx playwright test --list
+
+      # Step 6: Run Playwright tests with retries for stability
       - name: Run Playwright tests
-        run: npx playwright test
+        run: npx playwright test --retries=2
+
+      # Step 7: Upload Playwright test results as artifacts
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+
+      # Step 8: Upload test videos and screenshots for debugging
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-artifacts
+          path: test-results/
