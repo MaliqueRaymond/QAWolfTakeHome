@@ -1,18 +1,35 @@
 const { test, expect } = require('@playwright/test');
 
-// Playwright Test: Ensure the page has fully loaded before performing checks
-test('Ensure dynamic content (articles) loads successfully', async ({ page }) => {
-  // Navigate to Hacker News newest stories page
+// Test: Validate that dynamic content (articles) loads correctly
+test('Validate dynamic content loads correctly on Hacker News', async ({ page }) => {
+  // Step 1: Navigate to the Hacker News "newest" page
   await page.goto('https://news.ycombinator.com/newest');
 
-  // Wait for the articles to load with a timeout of 10 seconds
-  await page.waitForSelector('.athing', { timeout: 10000 });
+  // Step 2: Wait for dynamic content (articles) to load
+  await page.waitForSelector('.athing', { timeout: 10000 }); // Wait up to 10 seconds
 
-  // Verify the number of articles loaded
-  const articlesCount = await page.$$eval('.athing', (articles) => articles.length);
+  // Step 3: Count the loaded articles
+  const articles = await page.locator('.athing');
+  const articleCount = await articles.count();
 
-  // Assert that articles are present on the page
-  expect(articlesCount).toBeGreaterThan(0);
+  console.log(`✅ Total dynamic articles loaded: ${articleCount}`);
 
-  console.log(`Successfully loaded ${articlesCount} articles.`);
+  // Step 4: Assert that at least 30 articles are loaded (minimum expected)
+  expect(articleCount).toBeGreaterThanOrEqual(30);
+
+  // Step 5: Extract and log the first 5 articles' titles as a sample check
+  const sampleTitles = await articles.evaluateAll((elements) =>
+    elements.slice(0, 5).map(article => {
+      const titleElement = article.querySelector('.titleline > a');
+      return titleElement ? titleElement.innerText : 'No Title';
+    })
+  );
+
+  console.log('✅ Sample of loaded articles:');
+  sampleTitles.forEach((title, index) => console.log(`${index + 1}. ${title}`));
+
+  // Step 6: Assert that dynamic content (titles) is non-empty
+  for (const title of sampleTitles) {
+    expect(title).not.toBe('No Title'); // Ensure no empty or missing titles
+  }
 });

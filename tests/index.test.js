@@ -2,83 +2,57 @@ const { test, expect } = require('@playwright/test');
 
 // Helper Function to Convert Time Strings into Minutes
 function convertToMinutes(timeString) {
-  if (!timeString) {
-    return Infinity; // Handle null or undefined input
-  }
+  if (!timeString) return Infinity; // Treat missing time as invalid (large value)
+  
+  const [value, unit] = timeString.split(' ');
+  const minutes = parseInt(value);
 
-  let [value, unit] = timeString.split(' '); // Split time string into value and unit
-  value = parseInt(value); // Convert the value to an integer
-
-  if (isNaN(value)) {
-    return Infinity; // Return Infinity if the value cannot be parsed correctly
-  }
+  if (isNaN(minutes)) return Infinity;
 
   switch (unit) {
     case 'minute':
     case 'minutes':
-      return value; // Already in minutes, no conversion needed
+      return minutes;
     case 'hour':
     case 'hours':
-      return value * 60; // Convert hours to minutes
+      return minutes * 60;
     case 'day':
     case 'days':
-      return value * 24 * 60; // Convert days to minutes
+      return minutes * 24 * 60;
     default:
-      return Infinity; // Handle unexpected units by returning a large value
+      return Infinity;
   }
 }
 
-// Function to Compare Two Time Strings
-function isNewerOrEqual(current, next) {
-  if (!current || !next) {
-    return false; // If either value is null or undefined, we assume the comparison is false
-  }
+test('Validate that articles are sorted from newest to oldest', async ({ page }) => {
+  // Navigate to Hacker News newest stories
+  await page.goto('https://news.ycombinator.com/newest');
 
-  const currentMinutes = convertToMinutes(current);
-  const nextMinutes = convertToMinutes(next);
+  // Wait for articles to load
+  await page.waitForSelector('.athing', { timeout: 10000 });
 
-  return currentMinutes <= nextMinutes; // "Current" article should be newer or the same time as "next"
-}
+  // Extract the first 100 articles' titles and age text
+  const articles = await page.$$eval('.athing', (elements) =>
+    elements.slice(0, 100).map(article => {
+      const title = article.querySelector('.titleline > a')?.innerText || 'No Title';
+      const ageText = article.querySelector('.age')?.innerText || null;
+      return { title, ageText };
+    })
+  );
 
-// Playwright Test to Validate Article Sorting
-test.describe('Hacker News Sorting Tests', () => {
-  test('Validate articles are sorted from newest to oldest', async ({ page }) => {
-    // Go to Hacker News newest stories page
-    await page.goto('https://news.ycombinator.com/newest');
+  // Ensure that 100 articles were loaded
+  expect(articles.length).toBe(100);
 
-    // Wait for articles to load
-    await page.waitForSelector('.athing');
-    await page.waitForTimeout(3000); // Additional wait to ensure all articles load
+  // Validate sorting from newest to oldest
+  for (let i = 0; i < articles.length - 1; i++) {
+    const currentAge = convertToMinutes(articles[i].ageText);
+    const nextAge = convertToMinutes(articles[i + 1].ageText);
 
-    // Extract list of articles (first 100)
-    let articles = await page.$$eval('.athing', (articles) => {
-      return articles.slice(0, 100).map(article => {
-        const titleElement = article.querySelector('.titleline > a');
-        const ageElement = article.querySelector('.age');
-        const title = titleElement ? titleElement.innerText : 'No Title';
-        const ageText = ageElement ? ageElement.innerText : null;
-        return { title, ageText };
-      });
-    });
-
-    // Filter out articles with missing age info
-    articles = articles.filter(article => article.ageText !== null);
-
-    // Check if articles are sorted correctly
-    let isSorted = true;
-    for (let i = 0; i < articles.length - 1; i++) {
-      const currentAge = articles[i].ageText;
-      const nextAge = articles[i + 1].ageText;
-      console.log(`Comparing: ${articles[i].title} (${currentAge}) vs ${articles[i + 1].title} (${nextAge})`);
-
-      if (!isNewerOrEqual(currentAge, nextAge)) {
-        console.error(`Sorting issue between: "${articles[i].title}" and "${articles[i + 1].title}"`);
-        isSorted = false;
-        break;
-      }
+    if (currentAge > nextAge) {
+      console.error(`Sorting issue found: "${articles[i].title}" (${articles[i].ageText}) comes before "${articles[i + 1].title}" (${articles[i + 1].ageText})`);
     }
+    expect(currentAge).toBeLessThanOrEqual(nextAge); // Assert sorting order
+  }
 
-    // Expectation: Articles are sorted
-    expect(isSorted).toBeTruthy();
-  });
+  console.log('✅ Articles are successfully sorted from newest to oldest.');
 });

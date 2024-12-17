@@ -1,73 +1,36 @@
 const { test, expect } = require('@playwright/test');
 
-// Helper Function to Convert Time Strings into Minutes
-function convertToMinutes(timeString) {
-  if (!timeString) {
-    return Infinity; // Return Infinity for invalid or missing time string
-  }
-
-  let [value, unit] = timeString.split(' ');
-  value = parseInt(value);
-
-  if (isNaN(value)) {
-    return Infinity;
-  }
-
-  switch (unit) {
-    case 'minute':
-    case 'minutes':
-      return value;
-    case 'hour':
-    case 'hours':
-      return value * 60;
-    case 'day':
-    case 'days':
-      return value * 24 * 60;
-    default:
-      return Infinity;
-  }
-}
-
-// Function to Compare Two Time Strings
-function isNewerOrEqual(current, next) {
-  const currentMinutes = convertToMinutes(current);
-  const nextMinutes = convertToMinutes(next);
-  return currentMinutes <= nextMinutes;
-}
-
-// Playwright Test: Handle articles with missing or undefined age
-test('Handle articles with missing or undefined age', async ({ page }) => {
+// Test: Handle articles with missing or invalid age data
+test('Handle missing or invalid age data for articles', async ({ page }) => {
+  // Navigate to Hacker News newest stories
   await page.goto('https://news.ycombinator.com/newest');
 
-  await page.waitForSelector('.athing');
-  await page.waitForTimeout(3000);
+  // Wait for articles to load
+  await page.waitForSelector('.athing', { timeout: 10000 });
 
-  let articles = await page.$$eval('.athing', (articles) => {
-    return articles.slice(0, 100).map(article => {
-      const titleElement = article.querySelector('.titleline > a');
-      const ageElement = article.querySelector('.age');
-      const title = titleElement ? titleElement.innerText : 'No Title';
-      const ageText = ageElement ? ageElement.innerText : null;
+  // Extract articles' titles and ages
+  const articles = await page.$$eval('.athing', (elements) =>
+    elements.slice(0, 100).map(article => {
+      const title = article.querySelector('.titleline > a')?.innerText || 'No Title';
+      const ageText = article.querySelector('.age')?.innerText || null;
       return { title, ageText };
-    });
-  });
+    })
+  );
 
-  // Filter articles with missing age text
-  articles = articles.filter(article => article.ageText !== null);
+  // Handle missing or invalid age data
+  let missingAgeCount = 0;
 
-  // Check if sorting logic still works after filtering
-  let isSorted = true;
-  for (let i = 0; i < articles.length - 1; i++) {
-    const currentAge = articles[i].ageText;
-    const nextAge = articles[i + 1].ageText;
-    if (!isNewerOrEqual(currentAge, nextAge)) {
-      console.error(`Sorting issue between articles: "${articles[i].title}" and "${articles[i + 1].title}"`);
-      isSorted = false;
-      break;
+  for (const article of articles) {
+    if (!article.ageText) {
+      console.warn(`⚠️ Warning: Missing age for article "${article.title}"`);
+      missingAgeCount++;
     }
   }
 
-  // Assert that articles are sorted correctly
-  expect(isSorted).toBeTruthy();
-  console.log('The articles are sorted from newest to oldest!');
+  console.log(`✅ Total articles checked: ${articles.length}`);
+  console.log(`⚠️ Total articles with missing age: ${missingAgeCount}`);
+
+  // Assert that most articles have valid age data (allowing some missing ages)
+  const validAgeCount = articles.length - missingAgeCount;
+  expect(validAgeCount).toBeGreaterThan(50); // Allow up to 50 articles to have missing age data
 });
