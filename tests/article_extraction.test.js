@@ -1,6 +1,7 @@
 const { test, expect } = require('@playwright/test');
 
-test('Ensure articles have valid titles and ages', async ({ page }) => {
+test('Ensure articles have valid titles and handle missing ages', async ({ page }) => {
+  // Navigate to Hacker News newest stories
   await page.goto('https://news.ycombinator.com/newest');
 
   // Wait for articles to load
@@ -18,19 +19,20 @@ test('Ensure articles have valid titles and ages', async ({ page }) => {
     })
   );
 
-  // Check for titles and ages
+  // Track valid articles
   let validArticlesCount = 0;
 
+  // Check for titles and log missing ages
   for (const article of articles) {
+    expect(article.title).not.toBe('No Title');
     if (article.ageText === null) {
-      console.warn(`Warning: Missing age for article "${article.title}"`);
+      console.warn(`⚠️ Warning: Missing age for article "${article.title}"`);
     } else {
       validArticlesCount++;
     }
-    expect(article.title).not.toBe('No Title');
   }
 
-  console.log(`✅ Successfully loaded ${validArticlesCount} articles with valid ages.`);
-  expect(validArticlesCount).toBeGreaterThan(0); // Ensure at least some articles have valid data
+  // Assert that at least some articles have valid ageText
+  console.log(`✅ Successfully validated ${validArticlesCount} articles with valid ages.`);
+  expect(validArticlesCount).toBeGreaterThan(10); // Ensure at least 10 articles have valid ageText
 });
-
