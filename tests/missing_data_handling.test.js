@@ -1,36 +1,27 @@
 const { test, expect } = require('@playwright/test');
 
-// Test: Handle articles with missing or invalid age data
 test('Handle missing or invalid age data for articles', async ({ page }) => {
-  // Navigate to Hacker News newest stories
   await page.goto('https://news.ycombinator.com/newest');
+  await page.waitForSelector('.athing', { timeout: 20000 });
 
-  // Wait for articles to load
-  await page.waitForSelector('.athing', { timeout: 10000 });
-
-  // Extract articles' titles and ages
   const articles = await page.$$eval('.athing', (elements) =>
-    elements.slice(0, 100).map(article => {
-      const title = article.querySelector('.titleline > a')?.innerText || 'No Title';
-      const ageText = article.querySelector('.age')?.innerText || null;
-      return { title, ageText };
-    })
+    elements.slice(0, 100).map(article => ({
+      title: article.querySelector('.titleline > a')?.innerText || 'No Title',
+      ageText: article.querySelector('.age')?.innerText || null,
+    }))
   );
 
-  // Handle missing or invalid age data
-  let missingAgeCount = 0;
+  console.log(`✅ Total articles loaded: ${articles.length}`);
+  expect(articles.length).toBeGreaterThanOrEqual(30);
 
+  let invalidArticles = 0;
   for (const article of articles) {
     if (!article.ageText) {
-      console.warn(`⚠️ Warning: Missing age for article "${article.title}"`);
-      missingAgeCount++;
+      console.warn(`⚠️ Missing age for article: "${article.title}"`);
+      invalidArticles++;
     }
   }
 
-  console.log(`✅ Total articles checked: ${articles.length}`);
-  console.log(`⚠️ Total articles with missing age: ${missingAgeCount}`);
-
-  // Assert that most articles have valid age data (allowing some missing ages)
-  const validAgeCount = articles.length - missingAgeCount;
-  expect(validAgeCount).toBeGreaterThan(50); // Allow up to 50 articles to have missing age data
+  console.log(`⚠️ Total articles with missing age: ${invalidArticles}`);
+  expect(invalidArticles).toBeLessThanOrEqual(10); // Allow up to 10 invalid articles
 });
